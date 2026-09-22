@@ -36,6 +36,11 @@
     .full-height {
       height: 100vh;
       height: 100dvh;
+      /* Keep content clear of the notch/Dynamic Island, which sits on the
+         side when the phone is held horizontally (landscape). Falls back
+         to 0 on devices/browsers without safe-area support. */
+      padding-left: max(0.5rem, env(safe-area-inset-left));
+      padding-right: max(0.5rem, env(safe-area-inset-right));
     }
 
     /* Modal animation */
@@ -48,6 +53,91 @@
       transform: scale(1);
       transition: opacity 200ms ease-out, transform 200ms ease-out;
     }
+
+    /* --- Phone, held horizontally (landscape) ---
+       Targets short viewports (real phones in landscape stay under ~500px tall;
+       tablets/desktops in landscape stay well above it), regardless of width,
+       so the two-team layout and compact spacing kick in even on narrow phones
+       whose landscape width is still under the md: breakpoint. */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .full-height {
+        padding: 0.375rem !important;
+        gap: 0.375rem !important;
+      }
+      header {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+      }
+      header .hidden.sm\:inline {
+        display: none !important;
+      }
+      #scoreboard-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.5rem !important;
+      }
+      #card-team-1, #card-team-2 {
+        padding: 0.5rem 0.75rem !important;
+      }
+      .team-header-row {
+        margin-bottom: 0 !important;
+      }
+      .team-name-input {
+        font-size: 0.95rem !important;
+      }
+      .sets-control {
+        padding: 0.0625rem 0.5rem !important;
+      }
+      .sets-control span,
+      .sets-control button {
+        font-size: 0.75rem !important;
+      }
+      #tap-zone-1, #tap-zone-2 {
+        margin: 0.125rem 0 !important;
+      }
+      #score-team-1, #score-team-2 {
+        font-size: min(20vw, 34vh) !important;
+      }
+      .gesture-hint {
+        display: none !important;
+      }
+      .quick-controls {
+        gap: 0.375rem !important;
+      }
+      .quick-controls .score-btn {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+      }
+
+      /* Modals: shrink padding/spacing and let Target Score + Match Format sit
+         side-by-side so Settings fits a short landscape screen without scrolling. */
+      #settings-modal > div,
+      #confirm-modal > div,
+      #game-win-modal > div,
+      #match-summary-modal > div {
+        padding: 1rem !important;
+      }
+      #settings-modal > div {
+        max-height: 96vh !important;
+      }
+      #settings-modal h3 {
+        font-size: 1rem !important;
+      }
+      #settings-modal .space-y-6 > * + *,
+      #settings-modal > div > * + * {
+        margin-top: 0.75rem !important;
+      }
+      .settings-groups {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
+      }
+      .settings-groups > * + * {
+        margin-top: 0 !important;
+      }
+      .pwa-notice {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body class="h-full w-full overflow-hidden antialiased bg-slate-100 text-slate-900 font-sans">
@@ -55,7 +145,7 @@
   <!-- Main Container -->
   <div class="full-height w-full flex flex-col justify-between p-2 sm:p-4 gap-2 relative">
     
-    <!-- Top Bar: Timer, Controls & Status -->
+    <!-- Top Bar: Controls & Status -->
     <header class="flex items-center justify-between bg-white/80 backdrop-blur border border-slate-200 rounded-2xl px-4 py-2 z-10 shadow-lg shrink-0">
       
       <!-- Left Controls: Reset & Swap -->
@@ -70,26 +160,15 @@
         </button>
       </div>
 
-      <!-- Center: Match Timer & Sets -->
-      <div class="flex items-center gap-3 bg-white/70 px-3 py-1 rounded-xl border border-slate-200">
-        <!-- Timer Controls -->
-        <div class="flex items-center gap-2">
-          <button id="timer-toggle-btn" class="text-amber-500 hover:text-amber-600 transition active:scale-90">
-            <i id="timer-icon" data-lucide="play" class="w-5 h-5 fill-current"></i>
-          </button>
-          <span id="timer-display" class="font-score text-lg sm:text-xl font-bold tracking-wider text-amber-600">10:00</span>
-          <button id="timer-reset-btn" class="text-slate-400 hover:text-slate-600 transition active:scale-90">
-            <i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i>
-          </button>
-        </div>
-
-        <div class="h-4 w-[1px] bg-slate-200"></div>
-
+      <!-- Center: Match Info -->
+      <div class="flex items-center gap-3 bg-white/70 px-3 py-1.5 rounded-xl border border-slate-200">
         <!-- Target Info -->
-        <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+        <div class="text-xs sm:text-sm text-slate-500 font-medium flex items-center gap-1.5">
           <span id="game-tag">Game 1</span>
           <span class="text-slate-300">•</span>
           <span id="target-score-tag">11 PTS</span>
+          <span class="text-slate-300">•</span>
+          <span id="bestof-tag">Bo5</span>
         </div>
       </div>
 
@@ -116,15 +195,15 @@
         <div id="glow-team-1" class="absolute -right-20 -top-20 w-64 h-64 bg-red-400/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Team Header & Set Tracker -->
-        <div class="flex items-center justify-between z-10">
+        <div class="team-header-row flex items-center justify-between z-10">
           <div class="flex items-center gap-2 max-w-[70%]">
             <span id="color-indicator-1" class="w-4 h-4 rounded-full bg-red-500 shrink-0 shadow"></span>
-            <input id="name-team-1" type="text" value="Home" class="bg-transparent text-xl sm:text-2xl font-bold text-red-600 focus:outline-none focus:border-b border-slate-400 truncate w-full" placeholder="Team Name">
+            <input id="name-team-1" type="text" value="Home" class="team-name-input bg-transparent text-xl sm:text-2xl font-bold text-red-600 focus:outline-none focus:border-b border-slate-400 truncate w-full" placeholder="Team Name">
             <span id="serve-badge-1" data-team="1" class="serve-badge cursor-pointer px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shrink-0 shadow transition active:scale-90" title="Tap to set this team as server">Serve</span>
           </div>
-          
+
           <!-- Set Score Buttons -->
-          <div class="flex items-center gap-1.5 bg-white/50 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-900/10">
+          <div class="sets-control flex items-center gap-1.5 bg-white/50 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-900/10">
             <span class="text-xs font-semibold text-slate-500 uppercase mr-1">Sets</span>
             <button class="set-minus-btn text-slate-500 hover:text-slate-800 p-1" data-team="1">-</button>
             <span id="sets-team-1" class="font-score font-bold text-amber-600 text-lg px-1">0</span>
@@ -137,14 +216,14 @@
           <span id="score-team-1" class="font-score text-[28vw] md:text-[18vw] font-black leading-none tracking-tight text-red-600 drop-shadow-2xl select-none transition-transform active:scale-95">0</span>
           
           <!-- Gesture Hint Overlay (Fades out) -->
-          <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+          <div class="gesture-hint absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
             <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Tap / Swipe Up +1</span>
             <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Swipe Down -1</span>
           </div>
         </div>
 
         <!-- Inline Quick Controls -->
-        <div class="flex items-center justify-between z-10 gap-2">
+        <div class="quick-controls flex items-center justify-between z-10 gap-2">
           <button class="score-btn flex-1 py-3 rounded-2xl bg-white/50 hover:bg-white/70 active:bg-white/80 font-bold text-lg text-slate-800 border border-slate-900/10 transition backdrop-blur flex items-center justify-center gap-1" data-team="1" data-action="minus">
             <i data-lucide="minus" class="w-5 h-5"></i>
           </button>
@@ -160,15 +239,15 @@
         <div id="glow-team-2" class="absolute -right-20 -top-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Team Header & Set Tracker -->
-        <div class="flex items-center justify-between z-10">
+        <div class="team-header-row flex items-center justify-between z-10">
           <div class="flex items-center gap-2 max-w-[70%]">
             <span id="color-indicator-2" class="w-4 h-4 rounded-full bg-blue-500 shrink-0 shadow"></span>
-            <input id="name-team-2" type="text" value="Away" class="bg-transparent text-xl sm:text-2xl font-bold text-blue-600 focus:outline-none focus:border-b border-slate-400 truncate w-full" placeholder="Team Name">
+            <input id="name-team-2" type="text" value="Away" class="team-name-input bg-transparent text-xl sm:text-2xl font-bold text-blue-600 focus:outline-none focus:border-b border-slate-400 truncate w-full" placeholder="Team Name">
             <span id="serve-badge-2" data-team="2" class="serve-badge cursor-pointer px-2 py-0.5 rounded-full bg-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-wider shrink-0 shadow transition active:scale-90" title="Tap to set this team as server">Serve</span>
           </div>
-          
+
           <!-- Set Score Buttons -->
-          <div class="flex items-center gap-1.5 bg-white/50 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-900/10">
+          <div class="sets-control flex items-center gap-1.5 bg-white/50 backdrop-blur px-2.5 py-1 rounded-xl border border-slate-900/10">
             <span class="text-xs font-semibold text-slate-500 uppercase mr-1">Sets</span>
             <button class="set-minus-btn text-slate-500 hover:text-slate-800 p-1" data-team="2">-</button>
             <span id="sets-team-2" class="font-score font-bold text-amber-600 text-lg px-1">0</span>
@@ -181,14 +260,14 @@
           <span id="score-team-2" class="font-score text-[28vw] md:text-[18vw] font-black leading-none tracking-tight text-blue-600 drop-shadow-2xl select-none transition-transform active:scale-95">0</span>
           
           <!-- Gesture Hint Overlay -->
-          <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+          <div class="gesture-hint absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
             <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Tap / Swipe Up +1</span>
             <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Swipe Down -1</span>
           </div>
         </div>
 
         <!-- Inline Quick Controls -->
-        <div class="flex items-center justify-between z-10 gap-2">
+        <div class="quick-controls flex items-center justify-between z-10 gap-2">
           <button class="score-btn flex-1 py-3 rounded-2xl bg-white/50 hover:bg-white/70 active:bg-white/80 font-bold text-lg text-slate-800 border border-slate-900/10 transition backdrop-blur flex items-center justify-center gap-1" data-team="2" data-action="minus">
             <i data-lucide="minus" class="w-5 h-5"></i>
           </button>
@@ -204,7 +283,7 @@
 
   <!-- Settings Modal -->
   <div id="settings-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-6">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
           <i data-lucide="sliders" class="w-5 h-5 text-indigo-500"></i>
@@ -215,7 +294,7 @@
         </button>
       </div>
 
-      <div class="space-y-4">
+      <div class="settings-groups space-y-4">
         <!-- Target Score Setting -->
         <div>
           <label class="block text-sm font-medium text-slate-500 mb-2">Target Score</label>
@@ -227,44 +306,23 @@
           </div>
         </div>
 
-        <!-- Timer Setting -->
+        <!-- Match Format Setting -->
         <div>
-          <label class="block text-sm font-medium text-slate-500 mb-2">Timer Duration (min)</label>
-          <input id="timer-input" type="number" min="1" max="120" value="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-indigo-500 font-score">
-        </div>
-
-        <!-- Team Color Theme Picker -->
-        <div>
-          <label class="block text-sm font-medium text-slate-500 mb-2">Team Colors</label>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <span class="text-xs text-slate-500 mb-1 block">Home Theme</span>
-              <div class="flex gap-2">
-                <button class="color-opt-1 w-8 h-8 rounded-full bg-red-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="red"></button>
-                <button class="color-opt-1 w-8 h-8 rounded-full bg-emerald-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="emerald"></button>
-                <button class="color-opt-1 w-8 h-8 rounded-full bg-amber-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="amber"></button>
-                <button class="color-opt-1 w-8 h-8 rounded-full bg-purple-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="purple"></button>
-              </div>
-            </div>
-            <div>
-              <span class="text-xs text-slate-500 mb-1 block">Away Theme</span>
-              <div class="flex gap-2">
-                <button class="color-opt-2 w-8 h-8 rounded-full bg-blue-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="blue"></button>
-                <button class="color-opt-2 w-8 h-8 rounded-full bg-cyan-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="cyan"></button>
-                <button class="color-opt-2 w-8 h-8 rounded-full bg-pink-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="pink"></button>
-                <button class="color-opt-2 w-8 h-8 rounded-full bg-slate-600 ring-2 ring-offset-2 ring-offset-white ring-transparent hover:scale-110 transition" data-color="slate"></button>
-              </div>
-            </div>
+          <label class="block text-sm font-medium text-slate-500 mb-2">Match Format</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="bestof-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="3">Bo3</button>
+            <button class="bestof-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="5">Bo5</button>
+            <button class="bestof-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="7">Bo7</button>
           </div>
         </div>
+      </div>
 
-        <!-- PWA Installation Notice -->
-        <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-3.5 text-xs text-indigo-600 flex items-start gap-2.5">
-          <i data-lucide="share" class="w-5 h-5 shrink-0 text-indigo-500 mt-0.5"></i>
-          <div>
-            <span class="font-bold block text-indigo-700 mb-0.5">Save as a Mobile App (PWA)</span>
-            In iPhone Safari, tap the Share button at the bottom, then <strong class="text-indigo-700">"Add to Home Screen"</strong> for fullscreen offline use!
-          </div>
+      <!-- PWA Installation Notice -->
+      <div class="pwa-notice bg-indigo-50 border border-indigo-200 rounded-2xl p-3.5 text-xs text-indigo-600 flex items-start gap-2.5">
+        <i data-lucide="share" class="w-5 h-5 shrink-0 text-indigo-500 mt-0.5"></i>
+        <div>
+          <span class="font-bold block text-indigo-700 mb-0.5">Save as a Mobile App (PWA)</span>
+          In iPhone Safari, tap the Share button at the bottom, then <strong class="text-indigo-700">"Add to Home Screen"</strong> for fullscreen offline use!
         </div>
       </div>
 
@@ -276,7 +334,7 @@
 
   <!-- Custom Confirmation Dialog -->
   <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto">
         <i data-lucide="alert-triangle" class="w-6 h-6"></i>
       </div>
@@ -291,7 +349,7 @@
 
   <!-- Game Win Confirmation Modal -->
   <div id="game-win-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center mx-auto">
         <i data-lucide="trophy" class="w-6 h-6"></i>
       </div>
@@ -307,7 +365,7 @@
 
   <!-- Match Summary Modal -->
   <div id="match-summary-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center mx-auto">
         <i data-lucide="crown" class="w-6 h-6"></i>
       </div>
@@ -333,7 +391,6 @@
       firstServer: 1,
       pendingWin: null,
       matchOver: false,
-      timer: { durationMinutes: 10, remainingSeconds: 600, running: false, intervalId: null },
       soundEnabled: true,
       wakeLock: null
     };
@@ -443,7 +500,6 @@
       state.firstServer = 1;
       state.pendingWin = null;
       state.matchOver = false;
-      resetTimer();
       renderUI();
       playAudioTone(300, 'sawtooth', 0.15);
     }
@@ -619,6 +675,9 @@
       const isDeuce = state.targetScore > 0 && s1 >= state.targetScore - 1 && s2 >= state.targetScore - 1;
       document.getElementById('target-score-tag').textContent = isDeuce ? 'DEUCE' : (state.targetScore > 0 ? `${state.targetScore} PTS` : 'No Limit');
 
+      // Match format display
+      document.getElementById('bestof-tag').textContent = `Bo${state.bestOf}`;
+
       // Game counter & serve indicator
       document.getElementById('game-tag').textContent = `Game ${state.games.length + 1}`;
       const serving = getServingTeam();
@@ -632,54 +691,17 @@
       });
     }
 
-    // --- Timer Engine ---
-    function formatTime(seconds) {
-      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-      const s = (seconds % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
-    }
-
-    function updateTimerDisplay() {
-      document.getElementById('timer-display').textContent = formatTime(state.timer.remainingSeconds);
-    }
-
-    function toggleTimer() {
-      if (state.timer.running) {
-        // Pause
-        clearInterval(state.timer.intervalId);
-        state.timer.running = false;
-        document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
-      } else {
-        // Start
-        if (state.timer.remainingSeconds <= 0) return;
-        state.timer.running = true;
-        document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
-        
-        state.timer.intervalId = setInterval(() => {
-          state.timer.remainingSeconds--;
-          updateTimerDisplay();
-
-          if (state.timer.remainingSeconds <= 0) {
-            clearInterval(state.timer.intervalId);
-            state.timer.running = false;
-            document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
-            // Alarm tone
-            playAudioTone(880, 'square', 0.4);
-            triggerHapticFeedback([100, 100, 100, 100]);
-            lucide.createIcons();
-          }
-        }, 1000);
-      }
-      lucide.createIcons();
-    }
-
-    function resetTimer() {
-      clearInterval(state.timer.intervalId);
-      state.timer.running = false;
-      state.timer.remainingSeconds = state.timer.durationMinutes * 60;
-      document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
-      updateTimerDisplay();
-      lucide.createIcons();
+    // Highlight the currently active Target Score / Match Format options
+    // whenever the Settings modal is opened, so it reflects real state.
+    function syncSettingsUI() {
+      document.querySelectorAll('.target-score-opt').forEach(btn => {
+        btn.classList.toggle('border-indigo-500', parseInt(btn.dataset.val) === state.targetScore);
+        btn.classList.toggle('text-indigo-600', parseInt(btn.dataset.val) === state.targetScore);
+      });
+      document.querySelectorAll('.bestof-opt').forEach(btn => {
+        btn.classList.toggle('border-indigo-500', parseInt(btn.dataset.val) === state.bestOf);
+        btn.classList.toggle('text-indigo-600', parseInt(btn.dataset.val) === state.bestOf);
+      });
     }
 
     // --- Screen Wake Lock API ---
@@ -793,10 +815,6 @@
         resetModal.classList.add('hidden');
       });
 
-      // Timer Buttons
-      document.getElementById('timer-toggle-btn').addEventListener('click', toggleTimer);
-      document.getElementById('timer-reset-btn').addEventListener('click', resetTimer);
-
       // Audio & Wake Lock
       document.getElementById('sound-toggle-btn').addEventListener('click', () => {
         state.soundEnabled = !state.soundEnabled;
@@ -808,7 +826,10 @@
 
       // Settings Modal logic
       const settingsModal = document.getElementById('settings-modal');
-      document.getElementById('settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+      document.getElementById('settings-btn').addEventListener('click', () => {
+        syncSettingsUI();
+        settingsModal.classList.remove('hidden');
+      });
       document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.classList.add('hidden'));
 
       // Settings choices
@@ -817,27 +838,21 @@
           document.querySelectorAll('.target-score-opt').forEach(b => b.classList.remove('border-indigo-500', 'text-indigo-600'));
           btn.classList.add('border-indigo-500', 'text-indigo-600');
           state.targetScore = parseInt(btn.dataset.val);
-        });
-      });
-
-      // Color pickers
-      document.querySelectorAll('.color-opt-1').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.team1.color = btn.dataset.color;
           renderUI();
         });
       });
-      document.querySelectorAll('.color-opt-2').forEach(btn => {
+
+      // Match format (Best of 3 / 5 / 7)
+      document.querySelectorAll('.bestof-opt').forEach(btn => {
         btn.addEventListener('click', () => {
-          state.team2.color = btn.dataset.color;
+          document.querySelectorAll('.bestof-opt').forEach(b => b.classList.remove('border-indigo-500', 'text-indigo-600'));
+          btn.classList.add('border-indigo-500', 'text-indigo-600');
+          state.bestOf = parseInt(btn.dataset.val);
           renderUI();
         });
       });
 
       document.getElementById('save-settings-btn').addEventListener('click', () => {
-        const timeInput = parseInt(document.getElementById('timer-input').value) || 10;
-        state.timer.durationMinutes = timeInput;
-        resetTimer();
         settingsModal.classList.add('hidden');
       });
 
@@ -912,7 +927,6 @@
       lucide.createIcons();
       initListeners();
       renderUI();
-      updateTimerDisplay();
       injectPWAManifest();
       registerServiceWorker();
     });
