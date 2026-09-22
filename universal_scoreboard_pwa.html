@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100 select-none">
+<html lang="en" class="h-full bg-slate-950 text-slate-100 select-none">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>通用记分牌 Scoreboard Pro</title>
+  <title>Scoreboard Pro</title>
   
   <!-- Web App Capabilities & iOS Integration -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="记分牌 Pro">
+  <meta name="apple-mobile-web-app-title" content="Scoreboard Pro">
   <meta name="theme-color" content="#020617">
   
   <!-- Tailwind CSS -->
@@ -62,11 +62,11 @@
       <div class="flex items-center gap-1 sm:gap-2">
         <button id="reset-btn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs sm:text-sm font-medium active:scale-95">
           <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">重置</span>
+          <span class="hidden sm:inline">Reset</span>
         </button>
         <button id="swap-btn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs sm:text-sm font-medium active:scale-95">
           <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">换场地</span>
+          <span class="hidden sm:inline">Swap Sides</span>
         </button>
       </div>
 
@@ -87,7 +87,7 @@
 
         <!-- Target Info -->
         <div class="text-xs text-slate-400 font-medium">
-          <span id="target-score-tag">21 分制</span>
+          <span id="target-score-tag">11 PTS</span>
         </div>
       </div>
 
@@ -96,7 +96,7 @@
         <button id="sound-toggle-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95">
           <i id="sound-icon" data-lucide="volume-2" class="w-4 h-4"></i>
         </button>
-        <button id="wake-lock-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95" title="屏幕常亮">
+        <button id="wake-lock-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95" title="Keep Screen On">
           <i id="wake-icon" data-lucide="sun-off" class="w-4 h-4 text-slate-500"></i>
         </button>
         <button id="settings-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95">
@@ -117,12 +117,12 @@
         <div class="flex items-center justify-between z-10">
           <div class="flex items-center gap-2 max-w-[70%]">
             <span id="color-indicator-1" class="w-4 h-4 rounded-full bg-red-500 shrink-0 shadow"></span>
-            <input id="name-team-1" type="text" value="主队" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="输入队名">
+            <input id="name-team-1" type="text" value="Home" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="Team Name">
           </div>
           
           <!-- Set Score Buttons -->
           <div class="flex items-center gap-1.5 bg-slate-950/40 backdrop-blur px-2.5 py-1 rounded-xl border border-white/10">
-            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">局数</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">Sets</span>
             <button class="set-minus-btn text-slate-400 hover:text-white p-1" data-team="1">-</button>
             <span id="sets-team-1" class="font-score font-bold text-amber-400 text-lg px-1">0</span>
             <button class="set-plus-btn text-slate-400 hover:text-white p-1" data-team="1">+</button>
@@ -135,8 +135,8 @@
           
           <!-- Gesture Hint Overlay (Fades out) -->
           <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
-            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">点击/上滑 +1</span>
-            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">下滑 -1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">Tap / Swipe Up +1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">Swipe Down -1</span>
           </div>
         </div>
 
@@ -146,7 +146,7 @@
             <i data-lucide="minus" class="w-5 h-5"></i>
           </button>
           <button class="score-btn flex-[2] py-3 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/40 font-bold text-xl text-white border border-white/20 transition backdrop-blur flex items-center justify-center gap-1 shadow-lg" data-team="1" data-action="plus">
-            <i data-lucide="plus" class="w-6 h-6"></i>得分
+            <i data-lucide="plus" class="w-6 h-6"></i>Score
           </button>
         </div>
       </section>
@@ -160,12 +160,12 @@
         <div class="flex items-center justify-between z-10">
           <div class="flex items-center gap-2 max-w-[70%]">
             <span id="color-indicator-2" class="w-4 h-4 rounded-full bg-blue-500 shrink-0 shadow"></span>
-            <input id="name-team-2" type="text" value="客队" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="输入队名">
+            <input id="name-team-2" type="text" value="Away" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="Team Name">
           </div>
           
           <!-- Set Score Buttons -->
           <div class="flex items-center gap-1.5 bg-slate-950/40 backdrop-blur px-2.5 py-1 rounded-xl border border-white/10">
-            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">局数</span>
+            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">Sets</span>
             <button class="set-minus-btn text-slate-400 hover:text-white p-1" data-team="2">-</button>
             <span id="sets-team-2" class="font-score font-bold text-amber-400 text-lg px-1">0</span>
             <button class="set-plus-btn text-slate-400 hover:text-white p-1" data-team="2">+</button>
@@ -178,8 +178,8 @@
           
           <!-- Gesture Hint Overlay -->
           <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
-            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">点击/上滑 +1</span>
-            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">下滑 -1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">Tap / Swipe Up +1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">Swipe Down -1</span>
           </div>
         </div>
 
@@ -189,7 +189,7 @@
             <i data-lucide="minus" class="w-5 h-5"></i>
           </button>
           <button class="score-btn flex-[2] py-3 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/40 font-bold text-xl text-white border border-white/20 transition backdrop-blur flex items-center justify-center gap-1 shadow-lg" data-team="2" data-action="plus">
-            <i data-lucide="plus" class="w-6 h-6"></i>得分
+            <i data-lucide="plus" class="w-6 h-6"></i>Score
           </button>
         </div>
       </section>
@@ -204,7 +204,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-xl font-bold text-white flex items-center gap-2">
           <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i>
-          比赛与系统设置
+          Match &amp; System Settings
         </h3>
         <button id="close-settings-btn" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-6 h-6"></i>
@@ -214,27 +214,27 @@
       <div class="space-y-4">
         <!-- Target Score Setting -->
         <div>
-          <label class="block text-sm font-medium text-slate-400 mb-2">单局目标分数</label>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Target Score</label>
           <div class="grid grid-cols-4 gap-2">
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="11">11 分</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="21">21 分</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="25">25 分</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="0">不限</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="11">11</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="21">21</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="25">25</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="0">None</button>
           </div>
         </div>
 
         <!-- Timer Setting -->
         <div>
-          <label class="block text-sm font-medium text-slate-400 mb-2">倒计时时长 (分钟)</label>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Timer Duration (min)</label>
           <input id="timer-input" type="number" min="1" max="120" value="10" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 font-score">
         </div>
 
         <!-- Team Color Theme Picker -->
         <div>
-          <label class="block text-sm font-medium text-slate-400 mb-2">队伍代表色</label>
+          <label class="block text-sm font-medium text-slate-400 mb-2">Team Colors</label>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <span class="text-xs text-slate-500 mb-1 block">主队主题</span>
+              <span class="text-xs text-slate-500 mb-1 block">Home Theme</span>
               <div class="flex gap-2">
                 <button class="color-opt-1 w-8 h-8 rounded-full bg-red-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="red"></button>
                 <button class="color-opt-1 w-8 h-8 rounded-full bg-emerald-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="emerald"></button>
@@ -243,7 +243,7 @@
               </div>
             </div>
             <div>
-              <span class="text-xs text-slate-500 mb-1 block">客队主题</span>
+              <span class="text-xs text-slate-500 mb-1 block">Away Theme</span>
               <div class="flex gap-2">
                 <button class="color-opt-2 w-8 h-8 rounded-full bg-blue-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="blue"></button>
                 <button class="color-opt-2 w-8 h-8 rounded-full bg-cyan-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="cyan"></button>
@@ -258,14 +258,14 @@
         <div class="bg-indigo-950/40 border border-indigo-500/20 rounded-2xl p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
           <i data-lucide="share" class="w-5 h-5 shrink-0 text-indigo-400 mt-0.5"></i>
           <div>
-            <span class="font-bold block text-white mb-0.5">保存为手机 App (PWA)</span>
-            在 iPhone Safari 浏览器中点击底部分享按钮 <strong class="text-white">“添加到主屏幕”</strong>，即可全屏离线使用！
+            <span class="font-bold block text-white mb-0.5">Save as a Mobile App (PWA)</span>
+            In iPhone Safari, tap the Share button at the bottom, then <strong class="text-white">"Add to Home Screen"</strong> for fullscreen offline use!
           </div>
         </div>
       </div>
 
       <button id="save-settings-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl shadow-lg transition active:scale-95">
-        保存并应用
+        Save &amp; Apply
       </button>
     </div>
   </div>
@@ -276,11 +276,11 @@
       <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
         <i data-lucide="alert-triangle" class="w-6 h-6"></i>
       </div>
-      <h3 class="text-lg font-bold text-white">确认要重置比赛吗？</h3>
-      <p class="text-xs text-slate-400">这将清空两队的当前得分与局数，且无法撤销。</p>
+      <h3 class="text-lg font-bold text-white">Reset the match?</h3>
+      <p class="text-xs text-slate-400">This will clear both teams' current scores and sets, and cannot be undone.</p>
       <div class="flex gap-3 pt-2">
-        <button id="cancel-reset-btn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition">取消</button>
-        <button id="confirm-reset-btn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg transition">确认重置</button>
+        <button id="cancel-reset-btn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition">Cancel</button>
+        <button id="confirm-reset-btn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg transition">Yes, Reset</button>
       </div>
     </div>
   </div>
@@ -289,9 +289,9 @@
   <script>
     // --- State Management ---
     const state = {
-      team1: { name: '主队', score: 0, sets: 0, color: 'red' },
-      team2: { name: '客队', score: 0, sets: 0, color: 'blue' },
-      targetScore: 21,
+      team1: { name: 'Home', score: 0, sets: 0, color: 'red' },
+      team2: { name: 'Away', score: 0, sets: 0, color: 'blue' },
+      targetScore: 11,
       timer: { durationMinutes: 10, remainingSeconds: 600, running: false, intervalId: null },
       soundEnabled: true,
       wakeLock: null
@@ -423,7 +423,7 @@
       applyCardTheme('card-team-2', 'glow-team-2', 'color-indicator-2', state.team2.color);
 
       // Target score text
-      document.getElementById('target-score-tag').textContent = state.targetScore > 0 ? `${state.targetScore} 分制` : '无得分上限';
+      document.getElementById('target-score-tag').textContent = state.targetScore > 0 ? `${state.targetScore} PTS` : 'No Limit';
     }
 
     // --- Timer Engine ---
@@ -500,7 +500,7 @@
           console.warn("Wake lock error:", err);
         }
       } else {
-        alert("您的手机浏览器暂不支持自动常亮功能，请在 iPhone 系统设置中将自动锁定调整为‘永不’。");
+        alert("Your browser does not support the Wake Lock feature. On iPhone, go to Settings and set Auto-Lock to 'Never'.");
       }
     }
 
@@ -635,8 +635,8 @@
     // --- Dynamic Web App Manifest Generation ---
     function injectPWAManifest() {
       const manifestObj = {
-        name: "通用记分牌 Scoreboard Pro",
-        short_name: "记分牌",
+        name: "Scoreboard Pro",
+        short_name: "Scoreboard",
         start_url: "./",
         display: "standalone",
         background_color: "#020617",
