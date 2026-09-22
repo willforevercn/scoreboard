@@ -126,14 +126,6 @@
       #settings-modal > div > * + * {
         margin-top: 0.75rem !important;
       }
-      .settings-groups {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 0.75rem !important;
-      }
-      .settings-groups > * + * {
-        margin-top: 0 !important;
-      }
       .pwa-notice {
         display: none !important;
       }
@@ -294,18 +286,7 @@
         </button>
       </div>
 
-      <div class="settings-groups space-y-4">
-        <!-- Target Score Setting -->
-        <div>
-          <label class="block text-sm font-medium text-slate-500 mb-2">Target Score</label>
-          <div class="grid grid-cols-4 gap-2">
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="11">11</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="21">21</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="25">25</button>
-            <button class="target-score-opt p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-600 hover:border-indigo-500 transition active:scale-95" data-val="0">None</button>
-          </div>
-        </div>
-
+      <div class="space-y-4">
         <!-- Match Format Setting -->
         <div>
           <label class="block text-sm font-medium text-slate-500 mb-2">Match Format</label>
@@ -691,13 +672,9 @@
       });
     }
 
-    // Highlight the currently active Target Score / Match Format options
-    // whenever the Settings modal is opened, so it reflects real state.
+    // Highlight the currently active Match Format option whenever the
+    // Settings modal is opened, so it reflects real state.
     function syncSettingsUI() {
-      document.querySelectorAll('.target-score-opt').forEach(btn => {
-        btn.classList.toggle('border-indigo-500', parseInt(btn.dataset.val) === state.targetScore);
-        btn.classList.toggle('text-indigo-600', parseInt(btn.dataset.val) === state.targetScore);
-      });
       document.querySelectorAll('.bestof-opt').forEach(btn => {
         btn.classList.toggle('border-indigo-500', parseInt(btn.dataset.val) === state.bestOf);
         btn.classList.toggle('text-indigo-600', parseInt(btn.dataset.val) === state.bestOf);
@@ -831,16 +808,6 @@
         settingsModal.classList.remove('hidden');
       });
       document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.classList.add('hidden'));
-
-      // Settings choices
-      document.querySelectorAll('.target-score-opt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.target-score-opt').forEach(b => b.classList.remove('border-indigo-500', 'text-indigo-600'));
-          btn.classList.add('border-indigo-500', 'text-indigo-600');
-          state.targetScore = parseInt(btn.dataset.val);
-          renderUI();
-        });
-      });
 
       // Match format (Best of 3 / 5 / 7)
       document.querySelectorAll('.bestof-opt').forEach(btn => {
