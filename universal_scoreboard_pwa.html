@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-950 text-slate-100 select-none">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>通用记分牌 Scoreboard Pro</title>
+  
+  <!-- Web App Capabilities & iOS Integration -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="记分牌 Pro">
+  <meta name="theme-color" content="#020617">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Disable double-tap zoom & text selection */
+    * {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Custom digital/bold font preference fallback */
+    .font-score {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Dynamic viewport height fixing for mobile Safari */
+    .full-height {
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* Modal animation */
+    .modal-enter {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    .modal-enter-active {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 200ms ease-out, transform 200ms ease-out;
+    }
+  </style>
+</head>
+<body class="h-full w-full overflow-hidden antialiased bg-slate-950 text-slate-100 font-sans">
+
+  <!-- Main Container -->
+  <div class="full-height w-full flex flex-col justify-between p-2 sm:p-4 gap-2 relative">
+    
+    <!-- Top Bar: Timer, Controls & Status -->
+    <header class="flex items-center justify-between bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl px-4 py-2 z-10 shadow-lg shrink-0">
+      
+      <!-- Left Controls: Reset & Swap -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <button id="reset-btn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs sm:text-sm font-medium active:scale-95">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">重置</span>
+        </button>
+        <button id="swap-btn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs sm:text-sm font-medium active:scale-95">
+          <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">换场地</span>
+        </button>
+      </div>
+
+      <!-- Center: Match Timer & Sets -->
+      <div class="flex items-center gap-3 bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800/80">
+        <!-- Timer Controls -->
+        <div class="flex items-center gap-2">
+          <button id="timer-toggle-btn" class="text-amber-400 hover:text-amber-300 transition active:scale-90">
+            <i id="timer-icon" data-lucide="play" class="w-5 h-5 fill-current"></i>
+          </button>
+          <span id="timer-display" class="font-score text-lg sm:text-xl font-bold tracking-wider text-amber-400">10:00</span>
+          <button id="timer-reset-btn" class="text-slate-500 hover:text-slate-300 transition active:scale-90">
+            <i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i>
+          </button>
+        </div>
+
+        <div class="h-4 w-[1px] bg-slate-800"></div>
+
+        <!-- Target Info -->
+        <div class="text-xs text-slate-400 font-medium">
+          <span id="target-score-tag">21 分制</span>
+        </div>
+      </div>
+
+      <!-- Right Controls: Audio, Lock & Settings -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <button id="sound-toggle-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95">
+          <i id="sound-icon" data-lucide="volume-2" class="w-4 h-4"></i>
+        </button>
+        <button id="wake-lock-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95" title="屏幕常亮">
+          <i id="wake-icon" data-lucide="sun-off" class="w-4 h-4 text-slate-500"></i>
+        </button>
+        <button id="settings-btn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition active:scale-95">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Score Area (Adapts for Portrait and Landscape) -->
+    <main id="scoreboard-grid" class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 min-h-0">
+      
+      <!-- Team 1 Card -->
+      <section id="card-team-1" class="relative flex flex-col justify-between p-4 sm:p-6 rounded-3xl transition-colors duration-300 overflow-hidden shadow-2xl border border-white/10 group bg-red-950/40 border-red-500/30">
+        <!-- Background Accent Glow -->
+        <div id="glow-team-1" class="absolute -right-20 -top-20 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Team Header & Set Tracker -->
+        <div class="flex items-center justify-between z-10">
+          <div class="flex items-center gap-2 max-w-[70%]">
+            <span id="color-indicator-1" class="w-4 h-4 rounded-full bg-red-500 shrink-0 shadow"></span>
+            <input id="name-team-1" type="text" value="主队" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="输入队名">
+          </div>
+          
+          <!-- Set Score Buttons -->
+          <div class="flex items-center gap-1.5 bg-slate-950/40 backdrop-blur px-2.5 py-1 rounded-xl border border-white/10">
+            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">局数</span>
+            <button class="set-minus-btn text-slate-400 hover:text-white p-1" data-team="1">-</button>
+            <span id="sets-team-1" class="font-score font-bold text-amber-400 text-lg px-1">0</span>
+            <button class="set-plus-btn text-slate-400 hover:text-white p-1" data-team="1">+</button>
+          </div>
+        </div>
+
+        <!-- Giant Score Display & Tap Targets -->
+        <div class="relative flex-1 flex items-center justify-center my-2 cursor-pointer touch-none" id="tap-zone-1">
+          <span id="score-team-1" class="font-score text-[28vw] md:text-[18vw] font-black leading-none tracking-tight text-white drop-shadow-2xl select-none transition-transform active:scale-95">0</span>
+          
+          <!-- Gesture Hint Overlay (Fades out) -->
+          <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">点击/上滑 +1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">下滑 -1</span>
+          </div>
+        </div>
+
+        <!-- Inline Quick Controls -->
+        <div class="flex items-center justify-between z-10 gap-2">
+          <button class="score-btn flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 font-bold text-lg text-white border border-white/10 transition backdrop-blur flex items-center justify-center gap-1" data-team="1" data-action="minus">
+            <i data-lucide="minus" class="w-5 h-5"></i>
+          </button>
+          <button class="score-btn flex-[2] py-3 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/40 font-bold text-xl text-white border border-white/20 transition backdrop-blur flex items-center justify-center gap-1 shadow-lg" data-team="1" data-action="plus">
+            <i data-lucide="plus" class="w-6 h-6"></i>得分
+          </button>
+        </div>
+      </section>
+
+      <!-- Team 2 Card -->
+      <section id="card-team-2" class="relative flex flex-col justify-between p-4 sm:p-6 rounded-3xl transition-colors duration-300 overflow-hidden shadow-2xl border border-white/10 group bg-blue-950/40 border-blue-500/30">
+        <!-- Background Accent Glow -->
+        <div id="glow-team-2" class="absolute -right-20 -top-20 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Team Header & Set Tracker -->
+        <div class="flex items-center justify-between z-10">
+          <div class="flex items-center gap-2 max-w-[70%]">
+            <span id="color-indicator-2" class="w-4 h-4 rounded-full bg-blue-500 shrink-0 shadow"></span>
+            <input id="name-team-2" type="text" value="客队" class="bg-transparent text-xl sm:text-2xl font-bold text-white focus:outline-none focus:border-b border-white/30 truncate w-full" placeholder="输入队名">
+          </div>
+          
+          <!-- Set Score Buttons -->
+          <div class="flex items-center gap-1.5 bg-slate-950/40 backdrop-blur px-2.5 py-1 rounded-xl border border-white/10">
+            <span class="text-xs font-semibold text-slate-400 uppercase mr-1">局数</span>
+            <button class="set-minus-btn text-slate-400 hover:text-white p-1" data-team="2">-</button>
+            <span id="sets-team-2" class="font-score font-bold text-amber-400 text-lg px-1">0</span>
+            <button class="set-plus-btn text-slate-400 hover:text-white p-1" data-team="2">+</button>
+          </div>
+        </div>
+
+        <!-- Giant Score Display & Tap Targets -->
+        <div class="relative flex-1 flex items-center justify-center my-2 cursor-pointer touch-none" id="tap-zone-2">
+          <span id="score-team-2" class="font-score text-[28vw] md:text-[18vw] font-black leading-none tracking-tight text-white drop-shadow-2xl select-none transition-transform active:scale-95">0</span>
+          
+          <!-- Gesture Hint Overlay -->
+          <div class="absolute inset-0 flex flex-col items-center justify-between py-2 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">点击/上滑 +1</span>
+            <span class="text-xs uppercase tracking-widest text-slate-300 font-semibold">下滑 -1</span>
+          </div>
+        </div>
+
+        <!-- Inline Quick Controls -->
+        <div class="flex items-center justify-between z-10 gap-2">
+          <button class="score-btn flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:bg-white/30 font-bold text-lg text-white border border-white/10 transition backdrop-blur flex items-center justify-center gap-1" data-team="2" data-action="minus">
+            <i data-lucide="minus" class="w-5 h-5"></i>
+          </button>
+          <button class="score-btn flex-[2] py-3 rounded-2xl bg-white/20 hover:bg-white/30 active:bg-white/40 font-bold text-xl text-white border border-white/20 transition backdrop-blur flex items-center justify-center gap-1 shadow-lg" data-team="2" data-action="plus">
+            <i data-lucide="plus" class="w-6 h-6"></i>得分
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i>
+          比赛与系统设置
+        </h3>
+        <button id="close-settings-btn" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Target Score Setting -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">单局目标分数</label>
+          <div class="grid grid-cols-4 gap-2">
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="11">11 分</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="21">21 分</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="25">25 分</button>
+            <button class="target-score-opt p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300 hover:border-indigo-500 transition active:scale-95" data-val="0">不限</button>
+          </div>
+        </div>
+
+        <!-- Timer Setting -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">倒计时时长 (分钟)</label>
+          <input id="timer-input" type="number" min="1" max="120" value="10" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 font-score">
+        </div>
+
+        <!-- Team Color Theme Picker -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-2">队伍代表色</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-xs text-slate-500 mb-1 block">主队主题</span>
+              <div class="flex gap-2">
+                <button class="color-opt-1 w-8 h-8 rounded-full bg-red-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="red"></button>
+                <button class="color-opt-1 w-8 h-8 rounded-full bg-emerald-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="emerald"></button>
+                <button class="color-opt-1 w-8 h-8 rounded-full bg-amber-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="amber"></button>
+                <button class="color-opt-1 w-8 h-8 rounded-full bg-purple-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="purple"></button>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 mb-1 block">客队主题</span>
+              <div class="flex gap-2">
+                <button class="color-opt-2 w-8 h-8 rounded-full bg-blue-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="blue"></button>
+                <button class="color-opt-2 w-8 h-8 rounded-full bg-cyan-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="cyan"></button>
+                <button class="color-opt-2 w-8 h-8 rounded-full bg-pink-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="pink"></button>
+                <button class="color-opt-2 w-8 h-8 rounded-full bg-slate-600 ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent hover:scale-110 transition" data-color="slate"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PWA Installation Notice -->
+        <div class="bg-indigo-950/40 border border-indigo-500/20 rounded-2xl p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
+          <i data-lucide="share" class="w-5 h-5 shrink-0 text-indigo-400 mt-0.5"></i>
+          <div>
+            <span class="font-bold block text-white mb-0.5">保存为手机 App (PWA)</span>
+            在 iPhone Safari 浏览器中点击底部分享按钮 <strong class="text-white">“添加到主屏幕”</strong>，即可全屏离线使用！
+          </div>
+        </div>
+      </div>
+
+      <button id="save-settings-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl shadow-lg transition active:scale-95">
+        保存并应用
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Dialog -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-lg font-bold text-white">确认要重置比赛吗？</h3>
+      <p class="text-xs text-slate-400">这将清空两队的当前得分与局数，且无法撤销。</p>
+      <div class="flex gap-3 pt-2">
+        <button id="cancel-reset-btn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition">取消</button>
+        <button id="confirm-reset-btn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl shadow-lg transition">确认重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript App Engine Logic -->
+  <script>
+    // --- State Management ---
+    const state = {
+      team1: { name: '主队', score: 0, sets: 0, color: 'red' },
+      team2: { name: '客队', score: 0, sets: 0, color: 'blue' },
+      targetScore: 21,
+      timer: { durationMinutes: 10, remainingSeconds: 600, running: false, intervalId: null },
+      soundEnabled: true,
+      wakeLock: null
+    };
+
+    // Color Maps for Dynamic UI Theme Switching
+    const themeClasses = {
+      red: { bg: 'bg-red-950/40', border: 'border-red-500/30', glow: 'bg-red-600/10', dot: 'bg-red-500' },
+      emerald: { bg: 'bg-emerald-950/40', border: 'border-emerald-500/30', glow: 'bg-emerald-600/10', dot: 'bg-emerald-500' },
+      amber: { bg: 'bg-amber-950/40', border: 'border-amber-500/30', glow: 'bg-amber-600/10', dot: 'bg-amber-500' },
+      purple: { bg: 'bg-purple-950/40', border: 'border-purple-500/30', glow: 'bg-purple-600/10', dot: 'bg-purple-500' },
+      blue: { bg: 'bg-blue-950/40', border: 'border-blue-500/30', glow: 'bg-blue-600/10', dot: 'bg-blue-500' },
+      cyan: { bg: 'bg-cyan-950/40', border: 'border-cyan-500/30', glow: 'bg-cyan-600/10', dot: 'bg-cyan-500' },
+      pink: { bg: 'bg-pink-950/40', border: 'border-pink-500/30', glow: 'bg-pink-600/10', dot: 'bg-pink-500' },
+      slate: { bg: 'bg-slate-900/60', border: 'border-slate-500/30', glow: 'bg-slate-600/10', dot: 'bg-slate-400' }
+    };
+
+    // --- Web Audio Synthesizer (No external MP3 files required) ---
+    let audioCtx = null;
+    function playAudioTone(freq = 600, type = 'sine', duration = 0.08) {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio Context playback failed:", e);
+      }
+    }
+
+    function triggerHapticFeedback(pattern = [30]) {
+      if ('vibrate' in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch(e){}
+      }
+    }
+
+    // --- Core Score Operations ---
+    function updateScore(teamNum, delta) {
+      const teamKey = `team${teamNum}`;
+      const oldVal = state[teamKey].score;
+      const newVal = Math.max(0, oldVal + delta);
+      
+      if (oldVal === newVal) return;
+
+      state[teamKey].score = newVal;
+      
+      if (delta > 0) {
+        playAudioTone(800, 'sine', 0.08);
+        triggerHapticFeedback([40]);
+      } else {
+        playAudioTone(350, 'triangle', 0.1);
+        triggerHapticFeedback([20, 30, 20]);
+      }
+
+      renderUI();
+    }
+
+    function updateSets(teamNum, delta) {
+      const teamKey = `team${teamNum}`;
+      state[teamKey].sets = Math.max(0, state[teamKey].sets + delta);
+      playAudioTone(500, 'square', 0.05);
+      renderUI();
+    }
+
+    function swapTeams() {
+      // Swap properties
+      const tempObj = { ...state.team1 };
+      state.team1 = { ...state.team2 };
+      state.team2 = tempObj;
+
+      // Swap Name Input values
+      document.getElementById('name-team-1').value = state.team1.name;
+      document.getElementById('name-team-2').value = state.team2.name;
+
+      playAudioTone(700, 'sine', 0.12);
+      triggerHapticFeedback([50, 50]);
+      renderUI();
+    }
+
+    function resetAll() {
+      state.team1.score = 0;
+      state.team2.score = 0;
+      state.team1.sets = 0;
+      state.team2.sets = 0;
+      resetTimer();
+      renderUI();
+      playAudioTone(300, 'sawtooth', 0.15);
+    }
+
+    // --- Render Logic ---
+    function applyCardTheme(cardId, glowId, dotId, colorKey) {
+      const card = document.getElementById(cardId);
+      const glow = document.getElementById(glowId);
+      const dot = document.getElementById(dotId);
+      const theme = themeClasses[colorKey] || themeClasses.red;
+
+      // Clean old classes
+      card.className = `relative flex flex-col justify-between p-4 sm:p-6 rounded-3xl transition-all duration-300 overflow-hidden shadow-2xl border ${theme.bg} ${theme.border} group`;
+      glow.className = `absolute -right-20 -top-20 w-64 h-64 ${theme.glow} rounded-full blur-3xl pointer-events-none`;
+      dot.className = `w-4 h-4 rounded-full ${theme.dot} shrink-0 shadow`;
+    }
+
+    function renderUI() {
+      // Scores
+      document.getElementById('score-team-1').textContent = state.team1.score;
+      document.getElementById('score-team-2').textContent = state.team2.score;
+      
+      // Sets
+      document.getElementById('sets-team-1').textContent = state.team1.sets;
+      document.getElementById('sets-team-2').textContent = state.team2.sets;
+
+      // Colors
+      applyCardTheme('card-team-1', 'glow-team-1', 'color-indicator-1', state.team1.color);
+      applyCardTheme('card-team-2', 'glow-team-2', 'color-indicator-2', state.team2.color);
+
+      // Target score text
+      document.getElementById('target-score-tag').textContent = state.targetScore > 0 ? `${state.targetScore} 分制` : '无得分上限';
+    }
+
+    // --- Timer Engine ---
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateTimerDisplay() {
+      document.getElementById('timer-display').textContent = formatTime(state.timer.remainingSeconds);
+    }
+
+    function toggleTimer() {
+      if (state.timer.running) {
+        // Pause
+        clearInterval(state.timer.intervalId);
+        state.timer.running = false;
+        document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+      } else {
+        // Start
+        if (state.timer.remainingSeconds <= 0) return;
+        state.timer.running = true;
+        document.getElementById('timer-icon').setAttribute('data-lucide', 'pause');
+        
+        state.timer.intervalId = setInterval(() => {
+          state.timer.remainingSeconds--;
+          updateTimerDisplay();
+
+          if (state.timer.remainingSeconds <= 0) {
+            clearInterval(state.timer.intervalId);
+            state.timer.running = false;
+            document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+            // Alarm tone
+            playAudioTone(880, 'square', 0.4);
+            triggerHapticFeedback([100, 100, 100, 100]);
+            lucide.createIcons();
+          }
+        }, 1000);
+      }
+      lucide.createIcons();
+    }
+
+    function resetTimer() {
+      clearInterval(state.timer.intervalId);
+      state.timer.running = false;
+      state.timer.remainingSeconds = state.timer.durationMinutes * 60;
+      document.getElementById('timer-icon').setAttribute('data-lucide', 'play');
+      updateTimerDisplay();
+      lucide.createIcons();
+    }
+
+    // --- Screen Wake Lock API ---
+    async function toggleWakeLock() {
+      const btn = document.getElementById('wake-lock-btn');
+      const icon = document.getElementById('wake-icon');
+
+      if ('wakeLock' in navigator) {
+        try {
+          if (!state.wakeLock) {
+            state.wakeLock = await navigator.wakeLock.request('screen');
+            icon.setAttribute('data-lucide', 'sun');
+            icon.classList.remove('text-slate-500');
+            icon.classList.add('text-amber-400');
+          } else {
+            await state.wakeLock.release();
+            state.wakeLock = null;
+            icon.setAttribute('data-lucide', 'sun-off');
+            icon.classList.remove('text-amber-400');
+            icon.classList.add('text-slate-500');
+          }
+          lucide.createIcons();
+        } catch (err) {
+          console.warn("Wake lock error:", err);
+        }
+      } else {
+        alert("您的手机浏览器暂不支持自动常亮功能，请在 iPhone 系统设置中将自动锁定调整为‘永不’。");
+      }
+    }
+
+    // --- Touch Gesture Handling (Tap / Swipe Up / Swipe Down) ---
+    function setupGestureHandlers(elementId, teamNum) {
+      const el = document.getElementById(elementId);
+      let startY = 0;
+      let startTime = 0;
+
+      el.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+      }, { passive: true });
+
+      el.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        const deltaY = endY - startY;
+        const elapsedTime = Date.now() - startTime;
+
+        // Swipe Gesture Detection
+        if (Math.abs(deltaY) > 30 && elapsedTime < 400) {
+          if (deltaY < 0) {
+            // Swipe Up -> Plus
+            updateScore(teamNum, 1);
+          } else {
+            // Swipe Down -> Minus
+            updateScore(teamNum, -1);
+          }
+        } else if (Math.abs(deltaY) < 10 && elapsedTime < 300) {
+          // Tap -> Plus
+          updateScore(teamNum, 1);
+        }
+      }, { passive: true });
+
+      // Fallback click for desktop
+      el.addEventListener('click', (e) => {
+        if (!('ontouchstart' in window)) {
+          updateScore(teamNum, 1);
+        }
+      });
+    }
+
+    // --- Event Listeners Setup ---
+    function initListeners() {
+      // Score Buttons
+      document.querySelectorAll('.score-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const team = parseInt(btn.dataset.team);
+          const action = btn.dataset.action;
+          updateScore(team, action === 'plus' ? 1 : -1);
+        });
+      });
+
+      // Set Buttons
+      document.querySelectorAll('.set-plus-btn').forEach(btn => {
+        btn.addEventListener('click', () => updateSets(parseInt(btn.dataset.team), 1));
+      });
+      document.querySelectorAll('.set-minus-btn').forEach(btn => {
+        btn.addEventListener('click', () => updateSets(parseInt(btn.dataset.team), -1));
+      });
+
+      // Name Inputs
+      document.getElementById('name-team-1').addEventListener('input', (e) => state.team1.name = e.target.value);
+      document.getElementById('name-team-2').addEventListener('input', (e) => state.team2.name = e.target.value);
+
+      // Top Bar Controls
+      document.getElementById('swap-btn').addEventListener('click', swapTeams);
+      
+      // Reset Dialog
+      const resetModal = document.getElementById('confirm-modal');
+      document.getElementById('reset-btn').addEventListener('click', () => resetModal.classList.remove('hidden'));
+      document.getElementById('cancel-reset-btn').addEventListener('click', () => resetModal.classList.add('hidden'));
+      document.getElementById('confirm-reset-btn').addEventListener('click', () => {
+        resetAll();
+        resetModal.classList.add('hidden');
+      });
+
+      // Timer Buttons
+      document.getElementById('timer-toggle-btn').addEventListener('click', toggleTimer);
+      document.getElementById('timer-reset-btn').addEventListener('click', resetTimer);
+
+      // Audio & Wake Lock
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        const icon = document.getElementById('sound-icon');
+        icon.setAttribute('data-lucide', state.soundEnabled ? 'volume-2' : 'volume-x');
+        lucide.createIcons();
+      });
+      document.getElementById('wake-lock-btn').addEventListener('click', toggleWakeLock);
+
+      // Settings Modal logic
+      const settingsModal = document.getElementById('settings-modal');
+      document.getElementById('settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+      document.getElementById('close-settings-btn').addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+      // Settings choices
+      document.querySelectorAll('.target-score-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.target-score-opt').forEach(b => b.classList.remove('border-indigo-500', 'text-indigo-400'));
+          btn.classList.add('border-indigo-500', 'text-indigo-400');
+          state.targetScore = parseInt(btn.dataset.val);
+        });
+      });
+
+      // Color pickers
+      document.querySelectorAll('.color-opt-1').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.team1.color = btn.dataset.color;
+          renderUI();
+        });
+      });
+      document.querySelectorAll('.color-opt-2').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.team2.color = btn.dataset.color;
+          renderUI();
+        });
+      });
+
+      document.getElementById('save-settings-btn').addEventListener('click', () => {
+        const timeInput = parseInt(document.getElementById('timer-input').value) || 10;
+        state.timer.durationMinutes = timeInput;
+        resetTimer();
+        settingsModal.classList.add('hidden');
+      });
+
+      // Touch Gestures setup
+      setupGestureHandlers('tap-zone-1', 1);
+      setupGestureHandlers('tap-zone-2', 2);
+    }
+
+    // --- Dynamic Web App Manifest Generation ---
+    function injectPWAManifest() {
+      const manifestObj = {
+        name: "通用记分牌 Scoreboard Pro",
+        short_name: "记分牌",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#020617",
+        theme_color: "#020617",
+        icons: [
+          {
+            src: "https://img.icons8.com/emoji/192/trophy-emoji.png",
+            sizes: "192x192",
+            type: "image/png"
+          }
+        ]
+      };
+      const stringManifest = JSON.stringify(manifestObj);
+      const blob = new Blob([stringManifest], { type: 'application/json' });
+      const manifestURL = URL.createObjectURL(blob);
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestURL;
+      document.head.appendChild(link);
+    }
+
+    // --- Register Service Worker for Offline Execution ---
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'scoreboard-v1';
+          self.addEventListener('install', (e) => {
+            e.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => {
+                return cache.addAll(['./']);
+              })
+            );
+          });
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(
+              caches.match(e.request).then((res) => res || fetch(e.request))
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log('SW setup skipped', err));
+      }
+    }
+
+    // --- Initializer ---
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initListeners();
+      renderUI();
+      updateTimerDisplay();
+      injectPWAManifest();
+      registerServiceWorker();
+    });
+  </script>
+</body>
+</html>
