@@ -53,8 +53,10 @@ It's one file: `universal_scoreboard_pwa.html`. Tailwind (CDN, JIT) for styling,
 
 Things you're most likely to tweak:
 
-- **Digit size** — `.score-digit` in the `<style>` block: `min(34vw, 74vh)` for side-by-side, `min(70vw, 38vh)` for stacked
+- **Digit size** — `.score-digit` in the `<style>` block: `min(38vw, 80vh)` in landscape (swapped to `min(38vh, 80vw)` when the app is self-rotated)
 - **Half colours** — the `.half[data-color=…]` rules (dark = receiving, `.serving` = lit)
 - **Voice wording** — `announceServeChange`, `showGameWinModal`, `announceGameScore`, `announceMatchResult`
+
+The forced-landscape behaviour is the `@media (orientation: portrait)` block: it rotates `.full-height` 90° and swaps its width/height, and `upAxisDelta()` in the script remaps swipes accordingly. `html, body` are pinned (`position: fixed; overflow: hidden`) on purpose — without that, the rotated container's pre-transform box counts as horizontal overflow on iOS and the page can drift sideways.
 
 Match state lives in the `state` object. Each team has a stable `id` that travels with it through side swaps; game history is recorded by that id, which is what keeps the match summary correct after sides change.

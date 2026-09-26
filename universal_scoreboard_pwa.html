@@ -18,6 +18,20 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    /* Pin the document: no scrolling, no layout-viewport growth. Without this,
+       the rotated (portrait-viewport) container's pre-transform box is wider
+       than the screen, iOS treats it as horizontal overflow, the page can shift
+       sideways (black band after rotating back) and re-layouts during the
+       rotation animation (flicker). */
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
     /* Disable double-tap zoom & text selection */
     * {
       touch-action: manipulation;
@@ -121,6 +135,7 @@
       .full-height {
         position: absolute !important;
         top: 0 !important; left: 0 !important;
+        width: 100vh !important;
         width: 100dvh !important;
         height: 100vw !important;
         transform: rotate(90deg) translateY(-100%) !important;
@@ -263,7 +278,7 @@
         Done
       </button>
 
-      <p class="text-center text-[11px] text-slate-600 pt-1">Scoreboard v1.1.0</p>
+      <p class="text-center text-[11px] text-slate-600 pt-1">Scoreboard v1.1.1</p>
     </div>
   </div>
 
@@ -905,6 +920,10 @@
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('landscape').catch(() => {});
       }
+      // Belt and braces: never leave the page scrolled sideways after a rotation.
+      const resetScroll = () => window.scrollTo(0, 0);
+      window.addEventListener('orientationchange', resetScroll);
+      window.addEventListener('resize', resetScroll);
     });
   </script>
 </body>
