@@ -10,7 +10,8 @@ First stable release. Distance-readable redesign: the screen is now meant to be 
 - Dark theme. Each half is filled by one giant digit (`min(34vw, 74vh)` in landscape).
 - The serving half lights up in its colour (red / blue); the receiving half stays dark. This replaces the serve icon entirely.
 - Removed the top header and the `−` / `+ Score` button row. Scoring is tap / swipe up (+1) and swipe down (−1).
-- Controls moved to a muted bottom strip: Reset, Swap Sides, `Game · 11 PTS · BoN`, Settings.
+- Controls (Reset, Swap Sides, Settings) are three small translucent buttons floating over the bottom of the centre seam; the `Game · 11 PTS · BoN` caption was dropped.
+- Halves run edge to edge under the notch / Dynamic Island in landscape; only corner labels respect the safe area.
 - Sets shown as a single `2 : 1` pill at the top centre. Sets are display-only (no manual +/−).
 - Team names moved to the outer top corners; a faint `SERVE` tag in each bottom corner lets the scorer override who is serving.
 - Sound & voice and Keep screen on moved into Settings. All dialogs (game win, match over, reset, settings) restyled to match.
