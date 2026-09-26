@@ -6,9 +6,9 @@ A single-file table tennis scoreboard for a phone lying at the edge of the table
 
 Two halves fill the screen, one per player. Each half shows one giant digit. The **serving player's half lights up** in their colour (red or blue); the receiving half stays dark. That colour flip is the serve indicator — there's no icon to squint at.
 
-A small white pill at the top centre shows the games won (`2 : 1`). Names sit in the outer top corners; a muted control strip along the bottom has Reset, Swap Sides, the current game / format, and Settings. Everything other than the digits and the lit half is intentionally small: it's for the person keeping score, not the players.
+A small white pill at the top centre shows the games won (`2 : 1`). Names sit in the outer top corners, and three small translucent buttons float over the bottom of the centre seam: Reset, Swap Sides, Settings. Everything other than the digits and the lit half is intentionally small: it's for the person keeping score, not the players.
 
-Hold the phone horizontally. The layout also works in portrait (halves stacked), but landscape is what it's tuned for.
+Hold the phone horizontally. The halves run edge to edge (under the notch / Dynamic Island); only the corner labels step inside the safe area. The layout also works in portrait (halves stacked), but landscape is what it's tuned for.
 
 ## Scoring
 
@@ -24,7 +24,7 @@ Hold the phone horizontally. The layout also works in portrait (halves stacked),
 - First server alternates each game
 - Tap the faint **SERVE** tag in a half's bottom corner to set that side as the current server (e.g. to pick who serves first)
 - Sides **swap automatically** after every game, and **at 5 points in the deciding game**
-- **Swap Sides** in the bottom strip mirrors the halves manually so the left half always matches the player standing on the left — the serve and the match history follow the players, not the side of the screen
+- **Swap Sides** (floating button) mirrors the halves manually so the left half always matches the player standing on the left — the serve and the match history follow the players, not the side of the screen
 
 ## Voice announcements
 
