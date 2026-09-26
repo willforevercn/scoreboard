@@ -1,0 +1,8 @@
+# Whitelist mode: ignore everything, then explicitly allow the files we ship.
+# To track a new file, add a matching "!name" line below.
+*
+
+!.gitignore
+!README.md
+!CHANGELOG.md
+!universal_scoreboard_pwa.html
