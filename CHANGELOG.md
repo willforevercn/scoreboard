@@ -2,6 +2,11 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.1.1 — 2026-09-26
+
+### Fixed
+- Black band on the right after rotating back to real landscape, and flicker while rotating: the document is now pinned (`html, body { position: fixed; overflow: hidden }`) so the rotated container's oversized pre-transform box can't scroll the page sideways or trigger re-layouts mid-rotation. Scroll is also reset on every orientation change.
+
 ## 1.1.0 — 2026-09-26
 
 ### Added
