@@ -2,6 +2,15 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.1.2 — 2026-09-26
+
+### Fixed
+- Black band along the far edge (right in landscape, bottom when self-rotated) in home-screen mode. With `apple-mobile-web-app-status-bar-style=black-translucent`, iOS sizes the web view 59pt short (the status-bar height) while anchoring it at the screen origin, so the far edge is native black that the page can't paint. Switched to the opaque `black` style, which lays the web view out below the status bar and lets it reach the screen edge; in landscape the status bar is hidden so the board is full-screen. (Existing home-screen icons must be re-added for the new style to take effect.)
+- Installed app never picked up new versions: the service worker was cache-first. It is now network-first with cache fallback, and clears old caches on activate.
+
+### Added
+- Layout diagnostics line at the bottom of Settings (viewport, app size, screen, safe-area insets, scroll, orientation, browser/standalone).
+
 ## 1.1.1 — 2026-09-26
 
 ### Fixed
