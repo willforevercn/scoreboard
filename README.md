@@ -8,7 +8,7 @@ Two halves fill the screen, one per player. Each half shows one giant digit. The
 
 A small white pill at the top centre shows the games won (`2 : 1`). Names sit in the outer top corners, and three small translucent buttons float over the bottom of the centre seam: Reset, Swap Sides, Settings. Everything other than the digits and the lit half is intentionally small: it's for the person keeping score, not the players.
 
-Hold the phone horizontally. The halves run edge to edge (under the notch / Dynamic Island); only the corner labels step inside the safe area. The layout also works in portrait (halves stacked), but landscape is what it's tuned for.
+It's landscape-only. If the phone reports a portrait viewport (rotation lock on, or lying flat), the app rotates itself 90° so the board is always upright when the phone is held sideways; swipe directions are remapped to match. On Android, installing it as a PWA locks the orientation natively. The halves run edge to edge (under the notch / Dynamic Island); only the corner labels step inside the safe area.
 
 ## Scoring
 

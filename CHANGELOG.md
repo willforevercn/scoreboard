@@ -2,6 +2,11 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.1.0 — 2026-09-26
+
+### Added
+- Forced landscape: when the viewport is portrait (rotation lock on, phone lying flat) the app rotates itself 90° and swaps its dimensions, so the board is always shown landscape. Tap/swipe gestures are remapped to the rotated axis. Manifest `orientation: landscape` and a best-effort `screen.orientation.lock()` for Android PWAs.
+
 ## 1.0.0 — 2026-09-26
 
 First stable release. Distance-readable redesign: the screen is now meant to be read by both players from across the table.
