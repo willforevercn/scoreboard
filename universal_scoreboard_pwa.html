@@ -7,7 +7,7 @@
   
   <!-- Web App Capabilities & iOS Integration -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Scoreboard Pro">
   <meta name="theme-color" content="#0b0b0b">
   
@@ -25,9 +25,9 @@
        rotation animation (flicker). */
     html, body {
       position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: var(--app-w, 100%);
+      height: var(--app-h, 100%);
       overflow: hidden;
       overscroll-behavior: none;
     }
@@ -50,7 +50,8 @@
        (the notch sits on the side when the phone is held horizontally). */
     .full-height {
       height: 100vh;
-      height: 100dvh;
+      height: var(--app-h, 100dvh);
+      width: var(--app-w, 100%);
       padding-left: 0.375rem;
       padding-right: 0.375rem;
       padding-top: max(0.375rem, env(safe-area-inset-top));
@@ -135,9 +136,8 @@
       .full-height {
         position: absolute !important;
         top: 0 !important; left: 0 !important;
-        width: 100vh !important;
-        width: 100dvh !important;
-        height: 100vw !important;
+        width: var(--app-h, 100dvh) !important;
+        height: var(--app-w, 100vw) !important;
         transform: rotate(90deg) translateY(-100%) !important;
         transform-origin: top left !important;
         padding: 0.375rem !important;
@@ -231,6 +231,7 @@
         </button>
       </div>
 
+
       <div class="space-y-4">
         <!-- Match Format Setting -->
         <div>
@@ -278,7 +279,10 @@
         Done
       </button>
 
-      <p class="text-center text-[11px] text-slate-600 pt-1">Scoreboard v1.1.1</p>
+      <p class="text-center text-[11px] text-slate-600 pt-1">Scoreboard v1.1.2</p>
+      <p id="diag" class="text-center text-[10px] leading-relaxed text-slate-500 font-score break-all"></p>
+      <!-- probe for reading the safe-area insets from JS -->
+      <div id="sa-probe" style="position:fixed;visibility:hidden;pointer-events:none;top:env(safe-area-inset-top);right:env(safe-area-inset-right);bottom:env(safe-area-inset-bottom);left:env(safe-area-inset-left);"></div>
     </div>
   </div>
 
@@ -696,6 +700,16 @@
     // Highlight the currently active Match Format option whenever the
     // Settings modal is opened, so it reflects real state.
     function syncSettingsUI() {
+      // Layout diagnostics (viewport, screen, safe-area insets, scroll, mode) — helps
+      // chase device-specific issues like stray bands without a debugger attached.
+      try {
+        const cs = getComputedStyle(document.getElementById('sa-probe'));
+        const ins = ['top','right','bottom','left'].map(k => parseInt(cs[k]) || 0).join('/');
+        const mode = navigator.standalone ? 'standalone' : (matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser');
+        const ori = matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape';
+        document.getElementById('diag').textContent =
+          `vp ${window.innerWidth}x${window.innerHeight} · app ${getComputedStyle(document.documentElement).getPropertyValue('--app-w').trim()}x${getComputedStyle(document.documentElement).getPropertyValue('--app-h').trim()} · screen ${screen.width}x${screen.height} · doc ${document.documentElement.clientWidth}x${document.documentElement.clientHeight} · inset t/r/b/l ${ins} · scroll ${window.scrollX},${window.scrollY} · ${ori} · ${mode}`;
+      } catch (e) {}
       document.querySelectorAll('.bestof-opt').forEach(btn => {
         const on = parseInt(btn.dataset.val) === state.bestOf;
         btn.classList.toggle('bg-white', on);
@@ -888,17 +902,29 @@
     function registerServiceWorker() {
       if ('serviceWorker' in navigator) {
         const swCode = `
-          const CACHE_NAME = 'scoreboard-v1';
+          // Network-first: always try to fetch the latest page, fall back to the
+          // cached copy when offline. (Cache-first meant an installed app never
+          // picked up new versions.)
+          const CACHE_NAME = 'scoreboard-v2';
           self.addEventListener('install', (e) => {
+            self.skipWaiting();
+            e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['./'])));
+          });
+          self.addEventListener('activate', (e) => {
             e.waitUntil(
-              caches.open(CACHE_NAME).then((cache) => {
-                return cache.addAll(['./']);
-              })
+              caches.keys().then((keys) => Promise.all(
+                keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+              )).then(() => self.clients.claim())
             );
           });
           self.addEventListener('fetch', (e) => {
+            if (e.request.method !== 'GET') return;
             e.respondWith(
-              caches.match(e.request).then((res) => res || fetch(e.request))
+              fetch(e.request).then((res) => {
+                const copy = res.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy)).catch(() => {});
+                return res;
+              }).catch(() => caches.match(e.request))
             );
           });
         `;
@@ -906,6 +932,17 @@
         const swUrl = URL.createObjectURL(blob);
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW setup skipped', err));
       }
+    }
+
+    // --- Viewport fit ---
+    // Size the app from the real window size (JS-measured), re-measured on rotation.
+    // Note: in iOS home-screen mode with a translucent status bar the web view itself
+    // is short by the status-bar height, leaving a native black band we cannot paint;
+    // an opaque status bar style avoids that, which is why the meta tag uses "black".
+    function fitViewport() {
+      const root = document.documentElement;
+      root.style.setProperty('--app-w', window.innerWidth + 'px');
+      root.style.setProperty('--app-h', window.innerHeight + 'px');
     }
 
     // --- Initializer ---
@@ -920,10 +957,12 @@
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('landscape').catch(() => {});
       }
-      // Belt and braces: never leave the page scrolled sideways after a rotation.
-      const resetScroll = () => window.scrollTo(0, 0);
-      window.addEventListener('orientationchange', resetScroll);
-      window.addEventListener('resize', resetScroll);
+      // Size to the real screen, and re-measure on every rotation/resize (iOS
+      // reports new dimensions a beat late, so measure again shortly after).
+      fitViewport();
+      const refit = () => { fitViewport(); window.scrollTo(0, 0); setTimeout(fitViewport, 250); setTimeout(fitViewport, 700); };
+      window.addEventListener('orientationchange', refit);
+      window.addEventListener('resize', refit);
     });
   </script>
 </body>

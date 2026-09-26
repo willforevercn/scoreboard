@@ -45,7 +45,7 @@ Rapid scoring interrupts any call still playing, so you only ever hear the curre
 
 ## Installing as an app
 
-In iPhone Safari: Share → **Add to Home Screen**. The page registers a service worker so it keeps working offline.
+In iPhone Safari: Share → **Add to Home Screen**. The page registers a service worker (network-first, so updates arrive automatically) and keeps working offline. If you installed a version before 1.1.2, delete the icon and add it again once — earlier versions cached the page forever and also used a status-bar style that left a black band at the screen edge.
 
 ## Development
 
@@ -58,5 +58,7 @@ Things you're most likely to tweak:
 - **Voice wording** — `announceServeChange`, `showGameWinModal`, `announceGameScore`, `announceMatchResult`
 
 The forced-landscape behaviour is the `@media (orientation: portrait)` block: it rotates `.full-height` 90° and swaps its width/height, and `upAxisDelta()` in the script remaps swipes accordingly. `html, body` are pinned (`position: fixed; overflow: hidden`) on purpose — without that, the rotated container's pre-transform box counts as horizontal overflow on iOS and the page can drift sideways.
+
+The status-bar meta is `black` (opaque), not `black-translucent`, on purpose: with the translucent style iOS sizes a home-screen web app's view 59pt short and leaves an unpaintable black band at the far edge. Note iOS reads this meta when the icon is added — change it and you must re-add the icon. `fitViewport()` feeds the measured window size into `--app-w` / `--app-h`, and the Settings dialog shows a small diagnostics line (viewport, app size, insets, mode) for chasing this kind of thing on a device.
 
 Match state lives in the `state` object. Each team has a stable `id` that travels with it through side swaps; game history is recorded by that id, which is what keeps the match summary correct after sides change.
