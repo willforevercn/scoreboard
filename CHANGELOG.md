@@ -2,6 +2,27 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.2.0 — 2026-09-27
+
+Truly offline, and a match can't be lost any more.
+
+### Fixed
+- Offline mode never actually worked: the service worker was registered from a `blob:` URL, which browsers reject (the failure was swallowed). It is now a real `sw.js` (network-first, cache fallback, precaches the app and icons).
+- Wake lock silently dropped when you switched apps; it is now re-acquired when the page becomes visible again, and the toggle state is remembered.
+
+### Added
+- Match state is saved to `localStorage` after every change. On launch, an in-progress match offers **Continue / New match**; names, format, sound and screen-on preferences are always restored.
+- Player names written in CJK are spoken in Mandarin inside the otherwise-English calls (`"5 - 3, 小明 Serve"`), by splitting each call into per-language speech segments.
+- Real `manifest.webmanifest` and PNG icons (180 / 192 / 512) — home-screen icon instead of a page screenshot.
+- `test.js`: Node test suite that runs the app's real script against a DOM stub (serve rotation, swaps, deciding-game rule, announcement sequences, persistence). `node test.js`.
+- `build.sh` to regenerate the inlined CSS, and a GitHub Actions workflow that runs the tests on every PR and rebuilds/commits the CSS to the PR branch when it's stale. MIT `LICENSE`.
+
+### Changed
+- No more runtime CDNs. Tailwind is pre-built (~14 KB) and inlined; the 11 icons are inline SVG. The page is a single self-contained file that renders instantly and works offline.
+- Removed the +1 beep (the voice call is the feedback); the −1 correction still has its own tone.
+- After the match is over the board is frozen; tapping a half re-opens the summary instead of silently adding points.
+- Dead code removed: the unused stacked-portrait layout and `md:` breakpoints, the never-visible PWA tip in Settings, `getServingTeamId`.
+
 ## 1.1.4 — 2026-09-27
 
 ### Fixed

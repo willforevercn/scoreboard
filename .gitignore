@@ -3,7 +3,17 @@
 *
 
 !.gitignore
+!LICENSE
 !README.md
 !CHANGELOG.md
 !index.html
 !universal_scoreboard_pwa.html
+!sw.js
+!manifest.webmanifest
+!icon-180.png
+!icon-192.png
+!icon-512.png
+!build.sh
+!test.js
+!.github/
+!.github/**

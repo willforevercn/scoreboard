@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write   # lets the workflow push the rebuilt CSS back to a PR branch
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # For PRs, check out the actual branch (not the detached merge commit) so we can push to it.
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run logic tests
+        run: node test.js
+
+      - name: Rebuild inlined Tailwind CSS
+        run: ./build.sh
+
+      - name: Commit rebuilt CSS back to the PR branch (if it changed)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if git diff --quiet; then
+            echo "Inlined CSS is up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add universal_scoreboard_pwa.html
+          git commit -m "chore: rebuild inlined Tailwind CSS"
+          git push
+          echo "Rebuilt CSS pushed to ${{ github.head_ref }}."
+
+      - name: Fail if main has stale CSS (can't push to a protected branch)
+        if: github.event_name == 'push'
+        run: |
+          if ! git diff --quiet; then
+            echo "::error::Inlined Tailwind CSS is out of date. Run ./build.sh locally and commit."
+            git --no-pager diff --stat
+            exit 1
+          fi
