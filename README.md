@@ -1,6 +1,6 @@
 # Scoreboard
 
-A single-file table tennis scoreboard for a phone lying at the edge of the table, designed so both players can read it from across the table. No build step, no backend — open `universal_scoreboard_pwa.html` in a browser, or add it to your home screen as a PWA for fullscreen offline use.
+A single-file table tennis scoreboard for a phone lying at the edge of the table, designed so both players can read it from across the table. No build step, no backend — open `universal_scoreboard_pwa.html` in a browser (or the site root — `index.html` just redirects there), or add it to your home screen as a PWA for fullscreen offline use.
 
 ## How it looks
 
@@ -49,7 +49,7 @@ In iPhone Safari: Share → **Add to Home Screen**. The page registers a service
 
 ## Development
 
-It's one file: `universal_scoreboard_pwa.html`. Tailwind (CDN, JIT) for styling, Lucide for icons, everything else vanilla JS in the `<script>` at the bottom.
+It's one file: `universal_scoreboard_pwa.html` (`index.html` is a one-line redirect so the site root works). Tailwind (CDN, JIT) for styling, Lucide for icons, everything else vanilla JS in the `<script>` at the bottom.
 
 Things you're most likely to tweak:
 

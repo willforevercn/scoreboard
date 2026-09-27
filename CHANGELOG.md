@@ -2,6 +2,11 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.1.3 — 2026-09-27
+
+### Changed
+- Added `index.html` that redirects to `universal_scoreboard_pwa.html`, so the app opens from the site root without typing the file name. Manifest `start_url` and the offline cache now point at the app file explicitly.
+
 ## 1.1.2 — 2026-09-26
 
 ### Fixed
