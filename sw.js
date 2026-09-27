@@ -7,9 +7,9 @@ const PRECACHE = [
   './index.html',
   './universal_scoreboard_pwa.html',
   './manifest.webmanifest',
-  './icon-180.png',
-  './icon-192.png',
-  './icon-512.png'
+  './assets/icon-180.png',
+  './assets/icon-192.png',
+  './assets/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

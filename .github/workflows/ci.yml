@@ -25,7 +25,7 @@ jobs:
         run: node test.js
 
       - name: Rebuild inlined Tailwind CSS
-        run: ./build.sh
+        run: scripts/build.sh
 
       - name: Commit rebuilt CSS back to the PR branch (if it changed)
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
