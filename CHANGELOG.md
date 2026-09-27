@@ -2,6 +2,11 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.2.1 — 2026-09-27
+
+### Changed
+- Repo layout: icons moved to `assets/`, tooling to `scripts/` (`build.sh`, and a new `make-icons.py` that regenerates the icons from code). All references (HTML link tags, manifest, service-worker precache, CI) updated. No functional change.
+
 ## 1.2.0 — 2026-09-27
 
 Truly offline, and a match can't be lost any more.
@@ -13,7 +18,7 @@ Truly offline, and a match can't be lost any more.
 ### Added
 - Match state is saved to `localStorage` after every change. On launch, an in-progress match offers **Continue / New match**; names, format, sound and screen-on preferences are always restored.
 - Player names written in CJK are spoken in Mandarin inside the otherwise-English calls (`"5 - 3, 小明 Serve"`), by splitting each call into per-language speech segments.
-- Real `manifest.webmanifest` and PNG icons (180 / 192 / 512) — home-screen icon instead of a page screenshot.
+- Real `manifest.webmanifest` and PNG icons (180 / 192 / 512): a top-down table with red/blue halves, net and ball.
 - `test.js`: Node test suite that runs the app's real script against a DOM stub (serve rotation, swaps, deciding-game rule, announcement sequences, persistence). `node test.js`.
 - `build.sh` to regenerate the inlined CSS, and a GitHub Actions workflow that runs the tests on every PR and rebuilds/commits the CSS to the PR branch when it's stale. MIT `LICENSE`.
 

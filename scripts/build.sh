@@ -3,7 +3,7 @@
 # Run after changing any Tailwind class names in the HTML/JS. Requires Node.
 #   ./build.sh
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 HTML=universal_scoreboard_pwa.html
 TMP=$(mktemp -d)
 cat > "$TMP/tailwind.config.js" <<CFG

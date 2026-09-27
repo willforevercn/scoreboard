@@ -61,11 +61,12 @@ The app is `universal_scoreboard_pwa.html`: pre-built Tailwind CSS inlined in `<
 |---|---|
 | `index.html` | one-line redirect so the site root works |
 | `sw.js` | service worker (network-first, offline fallback) |
-| `manifest.webmanifest`, `icon-*.png` | install metadata and home-screen icons |
-| `build.sh` | regenerates the inlined CSS after you change Tailwind class names (`./build.sh`, needs Node) |
+| `manifest.webmanifest`, `assets/icon-*.png` | install metadata and home-screen icons |
+| `scripts/build.sh` | regenerates the inlined CSS after you change Tailwind class names (needs Node) |
+| `scripts/make-icons.py` | regenerates the icons from code (needs Pillow) |
 | `test.js` | logic tests — `node test.js` |
 
-If you edit classes in the HTML or in JS strings, run `./build.sh` to see the result locally; the CSS between the `TAILWIND:BEGIN/END` markers is generated, don't hand-edit it. You can also just open a PR: the CI workflow (`.github/workflows/ci.yml`) runs the tests, rebuilds the CSS, and commits the result back to the PR branch if you forgot. Pushes to `main` fail CI if the inlined CSS is stale.
+If you edit classes in the HTML or in JS strings, run `scripts/build.sh` to see the result locally; the CSS between the `TAILWIND:BEGIN/END` markers is generated, don't hand-edit it. You can also just open a PR: the CI workflow (`.github/workflows/ci.yml`) runs the tests, rebuilds the CSS, and commits the result back to the PR branch if you forgot. Pushes to `main` fail CI if the inlined CSS is stale.
 
 Things you're most likely to tweak:
 
