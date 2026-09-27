@@ -2,6 +2,11 @@
 
 All notable changes to the scoreboard. Versions follow the order of merged pull requests; dates are commit dates.
 
+## 1.1.4 — 2026-09-27
+
+### Fixed
+- The deciding-game side change at 5 points was performed but never announced: the per-point score call (interrupt mode) cancelled the "Change Sides" utterance. The swap call now goes first and that point's score call queues behind it.
+
 ## 1.1.3 — 2026-09-27
 
 ### Changed

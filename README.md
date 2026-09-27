@@ -33,9 +33,10 @@ Uses the browser's built-in speech (Web Speech API, English), so nothing to inst
 - Every point: score with the server's number first, then who serves — `"7 - 5, Percy Serve"`
 - Game won: `"Percy wins Game 2, 11 - 8"`
 - Start of the next game: the games score, then `"Change Sides"`, then `"0 - 0, Li Serve"`
+- Side change at 5 in the deciding game: `"Change Sides"`, then the score call for that point
 - Match over: `"Match over, Percy wins, 3 - 1"`
 
-Rapid scoring interrupts any call still playing, so you only ever hear the current score. Turn the whole thing off with **Sound & voice** in Settings.
+Rapid scoring interrupts any call still playing, so you only ever hear the current score — except that a "Change Sides" call is never cut off; the score queues behind it. Turn the whole thing off with **Sound & voice** in Settings.
 
 ## Settings
 
