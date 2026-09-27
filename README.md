@@ -1,6 +1,6 @@
 # Scoreboard
 
-A single-file table tennis scoreboard for a phone lying at the edge of the table, designed so both players can read it from across the table. No build step, no backend — open `universal_scoreboard_pwa.html` in a browser (or the site root — `index.html` just redirects there), or add it to your home screen as a PWA for fullscreen offline use.
+A single-file table tennis scoreboard for a phone lying at the edge of the table, designed so both players can read it from across the table. No backend, no runtime dependencies — open `universal_scoreboard_pwa.html` in a browser (or the site root; `index.html` redirects there), or add it to your home screen as a PWA for fullscreen offline use.
 
 ## How it looks
 
@@ -28,13 +28,14 @@ It's landscape-only. If the phone reports a portrait viewport (rotation lock on,
 
 ## Voice announcements
 
-Uses the browser's built-in speech (Web Speech API, English), so nothing to install:
+Uses the browser's built-in speech (Web Speech API), so nothing to install. Calls are in English; a player's name written in Chinese/Japanese/Korean characters is spoken in Mandarin within the English call:
 
 - Every point: score with the server's number first, then who serves — `"7 - 5, Percy Serve"`
 - Game won: `"Percy wins Game 2, 11 - 8"`
 - Start of the next game: the games score, then `"Change Sides"`, then `"0 - 0, Li Serve"`
 - Side change at 5 in the deciding game: `"Change Sides"`, then the score call for that point
 - Match over: `"Match over, Percy wins, 3 - 1"`
+- With a Chinese name: `"5 - 3, 小明 Serve"`, `"小明 wins Game 2, 11 - 8"` — the name in Mandarin, everything else in English
 
 Rapid scoring interrupts any call still playing, so you only ever hear the current score — except that a "Change Sides" call is never cut off; the score queues behind it. Turn the whole thing off with **Sound & voice** in Settings.
 
@@ -42,15 +43,29 @@ Rapid scoring interrupts any call still playing, so you only ever hear the curre
 
 - Match format: Bo3 / Bo5 / Bo7
 - Sound & voice on/off
-- Keep screen on (Wake Lock; on iPhones without support, set Auto-Lock to Never)
+- Keep screen on (Wake Lock; re-acquired automatically after switching apps; on iPhones without support, set Auto-Lock to Never)
+
+## Nothing gets lost
+
+The match is saved after every point. If the app is reloaded, killed in the background or the phone restarts, it offers **Continue** (with the score it remembers) or **New match**. Names and preferences are always restored.
 
 ## Installing as an app
 
-In iPhone Safari: Share → **Add to Home Screen**. The page registers a service worker (network-first, so updates arrive automatically) and keeps working offline. If you installed a version before 1.1.2, delete the icon and add it again once — earlier versions cached the page forever and also used a status-bar style that left a black band at the screen edge.
+In iPhone Safari: Share → **Add to Home Screen**. A service worker (`sw.js`, network-first) keeps it working offline and picks up new versions automatically. If you installed a version before 1.2.0, delete the icon and add it again once — earlier versions had no working offline cache and used a status-bar style that left a black band at the screen edge.
 
 ## Development
 
-It's one file: `universal_scoreboard_pwa.html` (`index.html` is a one-line redirect so the site root works). Tailwind (CDN, JIT) for styling, Lucide for icons, everything else vanilla JS in the `<script>` at the bottom.
+The app is `universal_scoreboard_pwa.html`: pre-built Tailwind CSS inlined in `<style>`, Lucide icons inlined as SVG, vanilla JS in the `<script>` at the bottom. Around it:
+
+| File | Purpose |
+|---|---|
+| `index.html` | one-line redirect so the site root works |
+| `sw.js` | service worker (network-first, offline fallback) |
+| `manifest.webmanifest`, `icon-*.png` | install metadata and home-screen icons |
+| `build.sh` | regenerates the inlined CSS after you change Tailwind class names (`./build.sh`, needs Node) |
+| `test.js` | logic tests — `node test.js` |
+
+If you edit classes in the HTML or in JS strings, run `./build.sh` to see the result locally; the CSS between the `TAILWIND:BEGIN/END` markers is generated, don't hand-edit it. You can also just open a PR: the CI workflow (`.github/workflows/ci.yml`) runs the tests, rebuilds the CSS, and commits the result back to the PR branch if you forgot. Pushes to `main` fail CI if the inlined CSS is stale.
 
 Things you're most likely to tweak:
 
