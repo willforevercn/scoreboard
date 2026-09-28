@@ -50,16 +50,16 @@ global.console = { ...console, warn() {} };   // silence AudioContext warnings f
 // Evaluate the app script in this scope; expose what we need.
 const api = eval(code + `
   ;({ state, updateScore, swapTeams, confirmGameWin, getServingTeam, setServingTeam, isDecidingGame,
-      resetAll, renderUI, saveState, loadSavedState, isMatchInProgress, applySavedState, teamName, isCJK })`);
+      resetAll, renderUI, saveState, loadSavedState, isMatchInProgress, applySavedState, teamName, isCJK, isRotated, isStacked, upAxisDelta, applyLayout })`);
 const { state } = api;
 
 function fresh(overrides = {}) {
   spoken.length = 0;
   Object.assign(state, {
-    team1: { name: 'Percy', score: 0, sets: 0, color: 'red', id: 1 },
-    team2: { name: 'Li', score: 0, sets: 0, color: 'blue', id: 2 },
+    team1: { name: 'Percy', score: 0, sets: 0, color: 'orange', id: 1 },
+    team2: { name: 'Li', score: 0, sets: 0, color: 'white', id: 2 },
     targetScore: 11, bestOf: 5, games: [], firstServer: 1, pendingWin: null, matchOver: false,
-    midGameSwapped: false, soundEnabled: true, wakeLockWanted: false, wakeLock: null
+    midGameSwapped: false, layout: 'rotate', soundEnabled: true, wakeLock: null
   }, overrides);
 }
 const serving = () => api.getServingTeam();
@@ -140,7 +140,7 @@ test('end-of-game announcement sequence and match end', () => {
 });
 
 test('a Chinese name is spoken in Mandarin, the rest of the call stays English', () => {
-  fresh({ team1: { name: '小明', score: 0, sets: 0, color: 'red', id: 1 } });
+  fresh({ team1: { name: '小明', score: 0, sets: 0, color: 'orange', id: 1 } });
   assert.ok(api.isCJK('小明') && !api.isCJK('Li'));
   spoken.length = 0; api.updateScore(1, 1);
   assert.deepEqual(spoken, ['<cancel>', '1 - 0,', '[zh]小明', 'Serve']);
@@ -160,6 +160,37 @@ test('state persists and is detected as in progress', () => {
   api.applySavedState(saved);
   assert.deepEqual([state.team1.score, state.team2.score, state.team1.name], [2, 1, 'Percy']);
   assert.equal(api.isMatchInProgress({ ...saved, matchOver: true }), false);
+});
+
+test('new match puts players back on their original sides', () => {
+  fresh(); api.swapTeams();                                  // ended the last match swapped
+  assert.equal(state.team1.id, 2);
+  api.resetAll();
+  assert.deepEqual([state.team1.id, state.team1.name, state.team2.name, state.firstServer], [1, 'Percy', 'Li', 1]);
+  assert.equal(document.getElementById('name-team-1').value, 'Percy');
+});
+
+test('follow-system layout: stacked when upright, side by side when sideways; swipe axes', () => {
+  fresh();
+  const orig = window.matchMedia;
+  const orient = o => { window.matchMedia = q => ({ matches: q.includes(o) }); };
+  try {
+    orient('portrait');
+    state.layout = 'rotate';                                                                       // force landscape
+    assert.ok(api.isRotated() && !api.isStacked());
+    assert.equal(api.upAxisDelta({ clientX: 0, clientY: 0 }, { clientX: 50, clientY: 0 }), -50);   // swipe right = up when rotated
+    state.layout = 'auto';                                                                         // follow system
+    assert.ok(!api.isRotated() && api.isStacked());
+    api.applyLayout();
+    assert.ok(document.documentElement.classList.contains('layout-stack'));
+    assert.equal(api.upAxisDelta({ clientX: 0, clientY: 50 }, { clientX: 0, clientY: 0 }), -50);   // plain swipe up
+
+    orient('landscape');
+    assert.ok(!api.isRotated() && !api.isStacked());
+    api.applyLayout();
+    assert.ok(!document.documentElement.classList.contains('layout-stack'));
+    assert.equal(api.upAxisDelta({ clientX: 0, clientY: 50 }, { clientX: 0, clientY: 0 }), -50);
+  } finally { window.matchMedia = orig; }
 });
 
 console.log(`\n${passed} tests passed`);
