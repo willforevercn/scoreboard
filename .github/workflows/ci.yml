@@ -45,7 +45,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           if ! git diff --quiet; then
-            echo "::error::Inlined Tailwind CSS is out of date. Run ./build.sh locally and commit."
+            echo "::error::Inlined Tailwind CSS is out of date. Run scripts/build.sh locally and commit."
             git --no-pager diff --stat
             exit 1
           fi

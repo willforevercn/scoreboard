@@ -4,11 +4,11 @@ A single-file table tennis scoreboard for a phone lying at the edge of the table
 
 ## How it looks
 
-Two halves fill the screen, one per player. Each half shows one giant digit. The **serving player's half lights up** in their colour (red or blue); the receiving half stays dark. That colour flip is the serve indicator — there's no icon to squint at.
+The screen is a table seen from above: two blue halves with a white net down the middle, one giant digit per half. Players are told apart by digit colour — **orange** on one side, **white** on the other (the colours follow the players when sides swap). The **serving player's half lights up** in bright table blue while the receiving half drops to a deep navy and its digit dims; that brightness flip is the serve indicator — there's no icon to squint at. The home-screen icon is the same table with the same two digits.
 
 A small white pill at the top centre shows the games won (`2 : 1`). Names sit in the outer top corners, and three small translucent buttons float over the bottom of the centre seam: Reset, Swap Sides, Settings. Everything other than the digits and the lit half is intentionally small: it's for the person keeping score, not the players.
 
-It's landscape-only. If the phone reports a portrait viewport (rotation lock on, or lying flat), the app rotates itself 90° so the board is always upright when the phone is held sideways; swipe directions are remapped to match. On Android, installing it as a PWA locks the orientation natively. The halves run edge to edge (under the notch / Dynamic Island); only the corner labels step inside the safe area.
+Settings → **Layout** has two modes. **Force landscape** (default): the board is always side by side; when the phone is held upright the whole app rotates itself 90° so it still reads as landscape — for rotation lock or a phone lying flat. **Follow system**: the board follows the phone — held sideways it is side by side, held upright the halves stack top and bottom with a horizontal net, the far player on top, for a scorer standing at one end of the table. Swipe directions follow whichever layout is showing. On Android, installing it as a PWA locks the orientation natively in Force landscape. The halves run edge to edge (under the notch / Dynamic Island); only the corner labels step inside the safe area.
 
 ## Scoring
 
@@ -41,9 +41,11 @@ Rapid scoring interrupts any call still playing, so you only ever hear the curre
 
 ## Settings
 
+- Layout: Force landscape / Follow system
 - Match format: Bo3 / Bo5 / Bo7
 - Sound & voice on/off
-- Keep screen on (Wake Lock; re-acquired automatically after switching apps; on iPhones without support, set Auto-Lock to Never)
+
+The screen is kept awake automatically for the whole session (Wake Lock, re-acquired after switching apps); there's nothing to switch on. On iPhones that don't support it, set Auto-Lock to Never.
 
 ## Nothing gets lost
 
@@ -71,11 +73,11 @@ If you edit classes in the HTML or in JS strings, run `scripts/build.sh` to see 
 Things you're most likely to tweak:
 
 - **Digit size** — `.score-digit` in the `<style>` block: `min(38vw, 80vh)` in landscape (swapped to `min(38vh, 80vw)` when the app is self-rotated)
-- **Half colours** — the `.half[data-color=…]` rules (dark = receiving, `.serving` = lit)
+- **Colours** — `.half` / `.half.serving` (table blue, lit vs. navy) and `.half[data-color=orange|white] .score-digit` (player digit colours); the icon uses the same values in `scripts/make-icons.py`
 - **Voice wording** — `announceServeChange`, `showGameWinModal`, `announceGameScore`, `announceMatchResult`
 
-The forced-landscape behaviour is the `@media (orientation: portrait)` block: it rotates `.full-height` 90° and swaps its width/height, and `upAxisDelta()` in the script remaps swipes accordingly. `html, body` are pinned (`position: fixed; overflow: hidden`) on purpose — without that, the rotated container's pre-transform box counts as horizontal overflow on iOS and the page can drift sideways.
+The forced-landscape behaviour is the `@media (orientation: portrait)` block: it rotates `.full-height` 90° and swaps its width/height, and `upAxisDelta()` in the script remaps swipes accordingly. In Follow-system mode `applyLayout()` sets `html.layout-stack` instead whenever the viewport is portrait; the `html.layout-stack` rules turn the grid into two rows. `html, body` are pinned (`position: fixed; overflow: hidden`) on purpose — without that, the rotated container's pre-transform box counts as horizontal overflow on iOS and the page can drift sideways.
 
-The status-bar meta is `black` (opaque), not `black-translucent`, on purpose: with the translucent style iOS sizes a home-screen web app's view 59pt short and leaves an unpaintable black band at the far edge. Note iOS reads this meta when the icon is added — change it and you must re-add the icon. `fitViewport()` feeds the measured window size into `--app-w` / `--app-h`, and the Settings dialog shows a small diagnostics line (viewport, app size, insets, mode) for chasing this kind of thing on a device.
+The status-bar meta is `black` (opaque), not `black-translucent`, on purpose: with the translucent style iOS sizes a home-screen web app's view 59pt short and leaves an unpaintable black band at the far edge. Note iOS reads this meta when the icon is added — change it and you must re-add the icon. `fitViewport()` feeds the measured window size into `--app-w` / `--app-h`.
 
 Match state lives in the `state` object. Each team has a stable `id` that travels with it through side swaps; game history is recorded by that id, which is what keeps the match summary correct after sides change.
